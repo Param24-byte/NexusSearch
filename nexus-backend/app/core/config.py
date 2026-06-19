@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     TAVILY_API_KEY:       str = ""
     TAVILY_RESULTS_COUNT: int = 8
 
+    # Serper Search
+    SERPER_API_KEY:       str = ""
+    SERPER_RESULTS_COUNT: int = 8
+
     # Gemini
     GEMINI_API_KEY: str = "your-gemini-api-key"
     GEMINI_MODEL:   str = "gemini-2.0-flash"

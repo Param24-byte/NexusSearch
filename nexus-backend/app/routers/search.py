@@ -10,6 +10,8 @@ from fastapi.responses import StreamingResponse
 
 from app.models.graph import SSEEvent, PipelineStage
 from app.services.tavily_search import tavily_search_service
+from app.services.serper_search import serper_search_service
+from app.services.scraper import scraper_service
 from app.services.gemini_extractor import gemini_service
 from app.services.neo4j_graph import neo4j_graph_service
 from app.services.intelligence import score_and_write_confidence, detect_contradictions
@@ -27,6 +29,7 @@ async def _run_pipeline(
     expand: bool = False,
     gemini_key: str = None,
     tavily_key: str = None,
+    serper_key: str = None,
     model: str = None,
 ) -> AsyncGenerator[str, None]:
     try:
@@ -48,17 +51,34 @@ async def _run_pipeline(
                                     progress=100, data=graph))
                 return
 
-        # ── 1. Tavily search + extract ────────────────────────────────────────
+        # ── 1. Search + Scrape ────────────────────────────────────────────────
         yield _sse(SSEEvent(stage=PipelineStage.SEARCHING,
                             message=f'Searching the web for "{query}"...',
                             progress=10))
 
-        results = await tavily_search_service.search(query, api_key=tavily_key)
+        use_serper = bool(serper_key or (getattr(settings, "SERPER_API_KEY", "") and getattr(settings, "SERPER_API_KEY", "") != "your_serper_key_here"))
+        if use_serper:
+            logger.info("Using Serper Search + BeautifulSoup Scraper")
+            raw_results = await serper_search_service.search(query, api_key=serper_key)
+            if not raw_results:
+                yield _sse(SSEEvent(stage=PipelineStage.ERROR,
+                                    message="No search results returned from Serper.",
+                                    progress=0,
+                                    error="Serper returned 0 results. Check API key or query."))
+                return
+            yield _sse(SSEEvent(stage=PipelineStage.SEARCHING,
+                                message=f"Scraping content from {len(raw_results)} sources...",
+                                progress=20))
+            results = await scraper_service.scrape_urls(raw_results)
+        else:
+            logger.info("Using Tavily Search Service")
+            results = await tavily_search_service.search(query, api_key=tavily_key)
+
         if not results:
             yield _sse(SSEEvent(stage=PipelineStage.ERROR,
-                                message="No search results returned.",
+                                message="No search results returned or scraped.",
                                 progress=0,
-                                error="Tavily returned 0 results. Check API key or query."))
+                                error="Search pipeline returned 0 results. Check API keys or query."))
             return
 
         yield _sse(SSEEvent(stage=PipelineStage.SEARCHING,
@@ -133,6 +153,7 @@ async def search_and_stream(
     expand:     bool = Query(False),
     gemini_key: str  = Query(None),
     tavily_key: str  = Query(None),
+    serper_key: str  = Query(None),
     model:      str  = Query(None),
 ):
     """
@@ -141,7 +162,7 @@ async def search_and_stream(
     GET /api/v1/search?q=Sam+Altman&expand=true   (query chaining)
     """
     return StreamingResponse(
-        _run_pipeline(q, expand, gemini_key=gemini_key, tavily_key=tavily_key, model=model),
+        _run_pipeline(q, expand, gemini_key=gemini_key, tavily_key=tavily_key, serper_key=serper_key, model=model),
         media_type="text/event-stream",
         headers={
             "Cache-Control":    "no-cache",

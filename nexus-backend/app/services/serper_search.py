@@ -17,17 +17,16 @@ SERPER_URL = "https://google.serper.dev/search"
 
 
 class SerperSearchService:
-    def __init__(self):
-        self.headers = {
-            "X-API-KEY": settings.SERPER_API_KEY,
-            "Content-Type": "application/json",
-        }
-
-    async def search(self, query: str) -> List[Dict[str, str]]:
+    async def search(self, query: str, api_key: str = None) -> List[Dict[str, str]]:
         """
         Search Google via Serper and return a list of result dicts.
         Each dict has: { url, title, description, snippet }
         """
+        key = api_key or settings.SERPER_API_KEY
+        headers = {
+            "X-API-KEY": key,
+            "Content-Type": "application/json",
+        }
         payload = {
             "q": query,
             "num": settings.SERPER_RESULTS_COUNT,
@@ -39,7 +38,7 @@ class SerperSearchService:
             try:
                 response = await client.post(
                     SERPER_URL,
-                    headers=self.headers,
+                    headers=headers,
                     json=payload,
                 )
                 response.raise_for_status()
