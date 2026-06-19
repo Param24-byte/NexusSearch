@@ -28,7 +28,7 @@ export interface GraphNode {
   claim?: string | null;
   // D3 runtime
   x?: number; y?: number;
-  fx?: number | null; fy?: number | null;
+  fx?: number; fy?: number;
   __bckgDimensions?: [number, number];
 }
 
