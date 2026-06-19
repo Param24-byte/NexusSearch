@@ -11,6 +11,10 @@ export const MOCK_GRAPH: GraphResponse = {
   node_count: 18,
   edge_count: 22,
   cached: false,
+  contradiction_count: 0,
+  has_contradictions: false,
+  bridge_count: 0,
+  avg_confidence: 0.85,
   nodes: [
     // ── Query Root ─────────────────────────────────────────────────────
     {
