@@ -126,7 +126,7 @@ export default function NexusGraph({
       
       // Softer, rounded background for text readability
       ctx.fillStyle = "rgba(4,7,15,0.85)";
-      if (ctx.roundRect) {
+      if (typeof ctx.roundRect === "function") {
         ctx.beginPath();
         ctx.roundRect(x - tw / 2 - 5, ly - fz * 0.75, tw + 10, fz * 1.5, 4 / gs);
         ctx.fill();
@@ -135,7 +135,7 @@ export default function NexusGraph({
       }
       
       // Optional subtle border
-      if (ctx.roundRect) {
+      if (typeof ctx.roundRect === "function") {
         ctx.strokeStyle = "rgba(255,255,255,0.1)";
         ctx.lineWidth = 1 / gs;
         ctx.stroke();
