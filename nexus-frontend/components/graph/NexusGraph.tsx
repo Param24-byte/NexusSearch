@@ -53,7 +53,7 @@ export default function NexusGraph({
     }
   }, [graphData]);
 
-  const paintNode = useCallback((node: GraphNode, ctx: CanvasRenderingContext2D, gs: number) => {
+  const paintNode = useCallback((node: any, ctx: CanvasRenderingContext2D, gs: number) => {
     const { x = 0, y = 0 } = node;
     const isSel    = node.id === selectedNodeId;
     const isHov    = node.id === hoveredId;
