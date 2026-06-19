@@ -41,18 +41,17 @@ export default function NexusGraph({
   const forceData = toForceData(graphData);
 
   useEffect(() => {
-    if (fgRef.current) setTimeout(() => fgRef.current?.zoomToFit(400, 80), 600);
+    if (fgRef.current) {
+      const ref = fgRef.current;
+      // Increased repulsion for better spacing
+      ref.d3Force("charge")?.strength((n: GraphNode) => n.is_query_node ? -1800 : -600 - n.val * 60);
+      // Increased link distance and reduced strength for a more breathable layout
+      ref.d3Force("link")?.distance((l: GraphEdge) => 220 / (typeof l.weight === "number" ? Math.max(l.weight, 0.5) : 1)).strength(0.35);
+      ref.d3Force("center")?.strength(0.06);
+      
+      setTimeout(() => ref.zoomToFit(400, 80), 600);
+    }
   }, [graphData]);
-
-  const handleRef = useCallback((ref: any) => {
-    fgRef.current = ref;
-    if (!ref) return;
-    // Increased repulsion for better spacing
-    ref.d3Force("charge")?.strength((n: GraphNode) => n.is_query_node ? -1800 : -600 - n.val * 60);
-    // Increased link distance and reduced strength for a more breathable layout
-    ref.d3Force("link")?.distance((l: GraphEdge) => 220 / (typeof l.weight === "number" ? Math.max(l.weight, 0.5) : 1)).strength(0.35);
-    ref.d3Force("center")?.strength(0.06);
-  }, []);
 
   const paintNode = useCallback((node: GraphNode, ctx: CanvasRenderingContext2D, gs: number) => {
     const { x = 0, y = 0 } = node;
@@ -221,7 +220,7 @@ export default function NexusGraph({
       }} />
 
       <ForceGraph2D
-        ref={handleRef}
+        ref={fgRef}
         graphData={forceData}
         nodeId="id" nodeVal="val" nodeColor="color"
         linkSource="source" linkTarget="target"
