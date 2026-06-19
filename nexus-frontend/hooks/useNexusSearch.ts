@@ -2,7 +2,7 @@
 import { useState, useCallback, useRef } from "react";
 import { SSEEvent, GraphResponse, PipelineStage } from "@/types/graph";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = "";
 
 export interface PipelineState {
   stage: PipelineStage | null;

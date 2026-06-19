@@ -5,6 +5,6 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://your-nexus-backend.railway.app"
+    "NEXT_PUBLIC_API_URL": "https://nexussearch-production.up.railway.app"
   }
 }
